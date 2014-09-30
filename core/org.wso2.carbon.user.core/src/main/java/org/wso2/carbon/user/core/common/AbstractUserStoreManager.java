@@ -425,10 +425,12 @@ public abstract class AbstractUserStoreManager implements UserStoreManager {
 
 		// If authentication fails in the previous step and if the user has not specified a
 		// domain- then we need to execute chained UserStoreManagers recursively.
-		if (!authenticated && !domainProvided && this.getSecondaryUserStoreManager() != null) {
-			authenticated = ((AbstractUserStoreManager) this.getSecondaryUserStoreManager())
-					.authenticate(userName, credential, domainProvided);
-		}
+        if (!authenticated && !domainProvided && this.getSecondaryUserStoreManager() != null
+                && this.getSecondaryUserStoreManager() instanceof AbstractUserStoreManager) {
+            authenticated = ((AbstractUserStoreManager) this.getSecondaryUserStoreManager())
+                    .authenticate(userName, credential, domainProvided);
+            return authenticated;
+        }
 
 		// You cannot change authentication decision in post handler to TRUE
 		for (UserOperationEventListener listener : UMListenerServiceComponent
@@ -805,31 +807,18 @@ public abstract class AbstractUserStoreManager implements UserStoreManager {
 	public final void deleteUser(String userName) throws UserStoreException {
 		
 		String loggedInUser = CarbonContext.getThreadLocalCarbonContext().getUsername();
-		if(loggedInUser != null){
-			loggedInUser = UserCoreUtil.addDomainToName(loggedInUser , UserCoreUtil.getDomainFromThreadLocal());
-			if ((loggedInUser.indexOf(UserCoreConstants.DOMAIN_SEPARATOR)) < 0) {
-				loggedInUser = UserCoreConstants.PRIMARY_DEFAULT_DOMAIN_NAME +
-				           CarbonConstants.DOMAIN_SEPARATOR + loggedInUser;
-			}	
-		}	
-		
-		String deletingUser = UserCoreUtil.addDomainToName(userName, getMyDomainName());
-		if ((deletingUser.indexOf(UserCoreConstants.DOMAIN_SEPARATOR)) < 0) {
-			deletingUser = UserCoreConstants.PRIMARY_DEFAULT_DOMAIN_NAME +
-			               CarbonConstants.DOMAIN_SEPARATOR + deletingUser;
-		}
-
-		if(loggedInUser!= null && loggedInUser.equals(deletingUser)) {
-			log.debug("User " + loggedInUser + " tried to delete him/her self");
+		if(loggedInUser!= null && loggedInUser.equals(userName)) {
+			log.debug("User " + userName + " tried to delete him/her self");
 			throw new UserStoreException("Cannot delete logged in user");
 		}
 
 		UserStore userStore = getUserStore(userName);
 		if (userStore.isRecurssive()) {
-			userStore.getUserStoreManager().deleteUser(userStore.getDomainFreeName());
+			userStore.getUserStoreManager().deleteUser(userName);
 			return;
 		}
 
+		userName = userStore.getDomainFreeName();
 		// #################### Domain Name Free Zone Starts Here ################################
 
 		if (UserCoreUtil.isPrimaryAdminUser(userName, realmConfig)) {
@@ -2220,11 +2209,12 @@ public abstract class AbstractUserStoreManager implements UserStoreManager {
 
 		UserStore userStore = getUserStore(roleName);
 		if (userStore.isRecurssive()) {
-			userStore.getUserStoreManager().deleteRole(userStore.getDomainFreeName());
+			userStore.getUserStoreManager().deleteRole(roleName);
 			return;
 		}
 
-		String roleWithDomain = UserCoreUtil.addDomainToName(roleName, getMyDomainName());
+		String roleWithDomain = roleName;
+		roleName = userStore.getDomainFreeName();
 		// #################### Domain Name Free Zone Starts Here ################################
 
 		if (userStore.isHybridRole()) {
