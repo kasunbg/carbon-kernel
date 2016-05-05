@@ -57,6 +57,9 @@
     <properties>
         <export.package>org.wso2.carbon.sample.transport.mgt</export.package>
         <import.package>*</import.package>
+        <startup.component>
+            carbon-sample-transport-mgt;required-service="org.wso2.carbon.sample.transport.mgt.Transport"
+        </startup.component>
     </properties>
 
 </project>

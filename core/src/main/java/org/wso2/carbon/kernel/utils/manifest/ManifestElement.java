@@ -15,6 +15,7 @@
  */
 package org.wso2.carbon.kernel.utils.manifest;
 
+import org.osgi.framework.Bundle;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.wso2.carbon.kernel.utils.Tokenizer;
@@ -81,6 +82,8 @@ public class ManifestElement {
 
     private static final String MANIFEST_INVALID_HEADER_EXCEPTION = "Invalid header found.";
 
+    private final String manifestHeaderName;
+
     /**
      * The value of the manifest element.
      */
@@ -97,10 +100,29 @@ public class ManifestElement {
     private Hashtable<String, Object> directives;
 
     /**
+     * Containing OSGi bundle.
+     */
+    private final Bundle bundle;
+
+    /**
      * Constructs an empty manifest element with no value or attributes.
      */
-    private ManifestElement(String value) {
+    private ManifestElement(String manifestHeaderName, String value, Bundle bundle) {
+        this.manifestHeaderName = manifestHeaderName;
         this.mainValue = value;
+        this.bundle = bundle;
+    }
+
+    /**
+     * Returns the name of the manifest header of this manifest element.
+     * <p>
+     * e.g. Provide-Capability
+     * e.g. Bundle-Version
+     *
+     * @return the name of the manifest header
+     */
+    public String getManifestHeaderName() {
+        return manifestHeaderName;
     }
 
     /**
@@ -158,6 +180,15 @@ public class ManifestElement {
      */
     public Enumeration<String> getKeys() {
         return getTableKeys(attributes);
+    }
+
+    /**
+     * Returns the bundle in which this manifest elements resides.
+     *
+     * @return the OSGi bundle
+     */
+    public Bundle getBundle() {
+        return bundle;
     }
 
     /**
@@ -306,17 +337,18 @@ public class ManifestElement {
      * one or more ManifestElements.
      * @throws ManifestElementParserException if the header value is invalid
      */
-    public static ManifestElement[] parseHeader(String header, String value) throws ManifestElementParserException {
+    public static List<ManifestElement> parseHeader(String header, String value, Bundle bundle)
+            throws ManifestElementParserException {
         if (value == null) {
-            return new ManifestElement[]{};
+            return new ArrayList<>();
         }
         List<ManifestElement> headerElements = new ArrayList<>(10);
         Tokenizer tokenizer = new Tokenizer(value);
         while (true) {
             String next = tokenizer.getString(";,");
             if (next == null) {
-                throw new ManifestElementParserException(MANIFEST_INVALID_HEADER_EXCEPTION + " Header: " +
-                        header + "Value: " + value);
+                throw new ManifestElementParserException(MANIFEST_INVALID_HEADER_EXCEPTION + " Header : " +
+                        header + ", Value: " + value);
             }
             StringBuilder headerValue = new StringBuilder(next);
 
@@ -329,7 +361,7 @@ public class ManifestElement {
                 next = tokenizer.getString(";,=:");
                 if (next == null) {
                     throw new ManifestElementParserException(MANIFEST_INVALID_HEADER_EXCEPTION + " Header: " +
-                            header + "Value: " + value);
+                            header + ", Value: " + value);
                 }
                 c = tokenizer.getChar();
                 while (c == ':') { // may not really be a :=
@@ -338,7 +370,7 @@ public class ManifestElement {
                         String restOfNext = tokenizer.getToken(";,=:");
                         if (restOfNext == null) {
                             throw new ManifestElementParserException(MANIFEST_INVALID_HEADER_EXCEPTION + " Header: " +
-                                    header + "Value: " +
+                                    header + ", Value: " +
                                     value);
                         }
                         next = next.concat(":" + c + restOfNext);
@@ -353,7 +385,7 @@ public class ManifestElement {
                 }
             }
             // found the header value create a manifestElement for it.
-            ManifestElement manifestElement = new ManifestElement(headerValue.toString());
+            ManifestElement manifestElement = new ManifestElement(header, headerValue.toString(), bundle);
 
             // now add any attributes/directives for the manifestElement.
             while (c == '=' || c == ':') {
@@ -363,7 +395,7 @@ public class ManifestElement {
                         String restOfNext = tokenizer.getToken("=:");
                         if (restOfNext == null) {
                             throw new ManifestElementParserException(MANIFEST_INVALID_HEADER_EXCEPTION + " Header: " +
-                                    header + "Value: " +
+                                    header + ", Value: " +
                                     value);
                         }
                         next = next.concat(":" + c + restOfNext);
@@ -388,7 +420,7 @@ public class ManifestElement {
                 String val = tokenizer.getString(";,", preserveEscapes);
                 if (val == null) {
                     throw new ManifestElementParserException(MANIFEST_INVALID_HEADER_EXCEPTION + " Header: " +
-                            header + "Value: " + value);
+                            header + ", Value: " + value);
                 }
 
                 logger.debug(";" + next + "=" + val);
@@ -401,14 +433,14 @@ public class ManifestElement {
                     directive = false;
                 } catch (Exception e) {
                     throw new ManifestElementParserException(MANIFEST_INVALID_HEADER_EXCEPTION + " Header: " +
-                            header + "Value: " + value);
+                            header + ", Value: " + value);
                 }
                 c = tokenizer.getChar();
                 if (c == ';') /* more */ {
                     next = tokenizer.getToken("=:");
                     if (next == null) {
                         throw new ManifestElementParserException(MANIFEST_INVALID_HEADER_EXCEPTION + " Header: " +
-                                header + "Value: " +
+                                header + ", Value: " +
                                 value);
                     }
                     c = tokenizer.getChar();
@@ -422,14 +454,14 @@ public class ManifestElement {
                 break;
             }
             throw new ManifestElementParserException(MANIFEST_INVALID_HEADER_EXCEPTION + " Header: " +
-                    header + "Value: " + value);
+                    header + ", Value: " + value);
         }
         int size = headerElements.size();
         if (size == 0) {
-            return new ManifestElement[]{};
+            return new ArrayList<>();
         }
 
-        return (headerElements.toArray(new ManifestElement[size]));
+        return headerElements;
     }
 
     /**

@@ -28,10 +28,27 @@ public final class Constants {
 
     public static final String START_TIME = "carbon.start.time";
 
+    public static final String LOGIN_MODULE_ENTRY = "CarbonSecurityConfig";
+
+    public static final String DEFAULT_TENANT = "default";
+
+    public static final String TENANT_NAME = "tenant.name";
+
+    public static final String SERVER_PACKAGE = "org.wso2.carbon";
+
     /**
      * Remove default constructor and make it not available to initialize.
      */
     private Constants() {
         throw new AssertionError("Trying to a instantiate a constant class");
+    }
+
+    /**
+     * Default value if it is not set in sys prop/env.
+     */
+    public static class PlaceHolders {
+        public static final String SERVER_KEY = "carbon-kernel";
+        public static final String SERVER_NAME = "WSO2 Carbon Kernel";
+        public static final String SERVER_VERSION = "5";
     }
 }

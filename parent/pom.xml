@@ -19,7 +19,7 @@
     <parent>
         <groupId>org.wso2</groupId>
         <artifactId>wso2</artifactId>
-        <version>2</version>
+        <version>4</version>
         <relativePath />
     </parent>
 
@@ -137,22 +137,32 @@
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-checkstyle-plugin</artifactId>
-                <version>${maven.checkstyleplugin.version}</version>
-            </plugin>
-            <plugin>
-                <groupId>org.codehaus.mojo</groupId>
-                <artifactId>findbugs-maven-plugin</artifactId>
-                <version>${maven.findbugsplugin.version}</version>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
                 <configuration>
                     <source>1.8</source>
                     <target>1.8</target>
                 </configuration>
             </plugin>
+
+            <!-- Remove after fixing CARBON-15861 -->
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>buildnumber-maven-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <phase>validate</phase>
+                        <goals>
+                            <goal>create</goal>
+                        </goals>
+                    </execution>
+                </executions>
+                <configuration>
+                    <doCheck>false</doCheck>
+                    <doUpdate>false</doUpdate>
+                    <revisionOnScmFailure>${maven.build.timestamp}</revisionOnScmFailure>
+                </configuration>
+            </plugin>
+
         </plugins>
     </build>
 
@@ -165,30 +175,46 @@
             </dependency>
             <dependency>
                 <groupId>org.wso2.carbon</groupId>
+                <artifactId>org.wso2.carbon.base</artifactId>
+                <version>${carbon.kernel.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.wso2.carbon</groupId>
                 <artifactId>org.wso2.carbon.launcher</artifactId>
                 <version>${carbon.kernel.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.wso2.carbon</groupId>
-                <artifactId>org.wso2.carbon.tools</artifactId>
+                <artifactId>org.wso2.carbon.tools.core</artifactId>
                 <version>${carbon.kernel.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.wso2.carbon</groupId>
-                <artifactId>org.wso2.carbon.core.server.feature</artifactId>
+                <artifactId>org.wso2.carbon.kernel.feature</artifactId>
                 <version>${carbon.kernel.version}</version>
                 <type>zip</type>
             </dependency>
             <dependency>
                 <groupId>org.wso2.carbon</groupId>
-                <artifactId>org.wso2.carbon.core.runtime.feature</artifactId>
+                <artifactId>org.wso2.carbon.runtime.feature</artifactId>
                 <version>${carbon.kernel.version}</version>
                 <type>zip</type>
+            </dependency>
+            <dependency>
+                <groupId>org.wso2.carbon</groupId>
+                <artifactId>osgi-test-util</artifactId>
+                <version>${carbon.kernel.version}</version>
+                <scope>test</scope>
             </dependency>
             <dependency>
                 <groupId>org.osgi</groupId>
                 <artifactId>org.osgi.core</artifactId>
                 <version>${osgi.core.api.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.osgi</groupId>
+                <artifactId>org.osgi.compendium</artifactId>
+                <version>${osgi.compendium.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.wso2.eclipse.osgi</groupId>
@@ -232,11 +258,6 @@
             </dependency>
             <dependency>
                 <groupId>org.wso2.eclipse.equinox</groupId>
-                <artifactId>org.eclipse.equinox.app</artifactId>
-                <version>${equinox.app.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.wso2.eclipse.equinox</groupId>
                 <artifactId>org.eclipse.equinox.concurrent</artifactId>
                 <version>${equinox.concurrent.version}</version>
             </dependency>
@@ -254,11 +275,6 @@
                 <groupId>org.wso2.eclipse.equinox</groupId>
                 <artifactId>org.eclipse.equinox.preferences</artifactId>
                 <version>${equinox.preferences.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.wso2.eclipse.equinox</groupId>
-                <artifactId>org.eclipse.equinox.registry</artifactId>
-                <version>${equinox.registry.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.wso2.eclipse.equinox</groupId>
@@ -329,6 +345,26 @@
             </dependency>
             <dependency>
                 <groupId>org.ops4j.pax.exam</groupId>
+                <artifactId>pax-exam-inject</artifactId>
+                <version>${pax.exam.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.ops4j.pax.exam</groupId>
+                <artifactId>pax-exam-extender-service</artifactId>
+                <version>${pax.exam.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.ops4j.base</groupId>
+                <artifactId>ops4j-base</artifactId>
+                <version>${ops4j.base.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.geronimo.specs</groupId>
+                <artifactId>geronimo-atinject_1.0_spec</artifactId>
+                <version>${geronimo.atinject.spec.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.ops4j.pax.exam</groupId>
                 <artifactId>pax-exam-container-native</artifactId>
                 <version>${pax.exam.version}</version>
             </dependency>
@@ -378,12 +414,20 @@
                 <version>${carbon.kernel.version}</version>
             </dependency>
             <dependency>
-                <groupId>mysql</groupId>
-                <artifactId>mysql-connector-java</artifactId>
-                <version>${mysql.connector.java.version}</version>
+                <groupId>org.wso2.carbon</groupId>
+                <artifactId>carbon-context-test-artifact</artifactId>
+                <version>${carbon.kernel.version}</version>
+                <scope>test</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.wso2.carbon</groupId>
+                <artifactId>wso2carbon-kernel</artifactId>
+                <version>${carbon.kernel.version}</version>
+                <type>zip</type>
+                <scope>test</scope>
             </dependency>
         </dependencies>
-    </dependencyManagement>
+   </dependencyManagement>
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -434,8 +478,8 @@
         <equinox.osgi.compatibility.statre.version>1.0.1.v20140709-1414</equinox.osgi.compatibility.statre.version>
 
         <!--PAX Logging related dependency versions-->
-        <pax.logging.api.version>1.8.4</pax.logging.api.version>
-        <pax.logging.log4j2.version>1.8.4</pax.logging.log4j2.version>
+        <pax.logging.api.version>1.8.5</pax.logging.api.version>
+        <pax.logging.log4j2.version>1.8.5</pax.logging.log4j2.version>
         <org.eclipse.equinox.cm.version>1.1.0.v20131021-1936</org.eclipse.equinox.cm.version>
 
         <!--Maven Plugins -->
@@ -444,20 +488,25 @@
         <maven.archetype.version>2.4</maven.archetype.version>
 
         <!--Pax Exam Versions-->
-        <pax.exam.version>4.6.0</pax.exam.version>
+        <pax.exam.version>4.8.0</pax.exam.version>
         <pax.url.aether.version>1.6.0</pax.url.aether.version>
         <ow2.jta.spec.version>1.0.12</ow2.jta.spec.version>
         <slf4j.api.version>1.7.12</slf4j.api.version>
         <javax.inject.version>1</javax.inject.version>
+        <ops4j.base.version>1.5.0</ops4j.base.version>
+        <osgi.compendium.version>4.3.1</osgi.compendium.version>
+        <geronimo.atinject.spec.version>1.0</geronimo.atinject.spec.version>
 
         <!--Other dependency versions -->
-        <carbon.feature.plugin.version>2.0.0</carbon.feature.plugin.version>
+        <carbon.feature.plugin.version>2.0.1</carbon.feature.plugin.version>
         <org.snakeyaml.version>1.16.0.wso2v1</org.snakeyaml.version>
         <org.snakeyaml.package.import.version.range>[1.16.0,2.0.0)</org.snakeyaml.package.import.version.range>
         <testng.version>6.9.4</testng.version>
         <jacoco.version>0.7.5.201505241946</jacoco.version>
         <org.jacoco.ant.version>0.7.5.201505241946</org.jacoco.ant.version>
         <commons.io.version>2.4.0.wso2v1</commons.io.version>
-        <mysql.connector.java.version>5.1.37</mysql.connector.java.version>
+        <geronimo.jms.spec.version>1.1</geronimo.jms.spec.version>
+        <javax.management.import.version.range>[0.0.0,1.0.0)</javax.management.import.version.range>
+        <javax.security.auth.import.version.range>[0.0.0,1.0.0)</javax.security.auth.import.version.range>
     </properties>
 </project>

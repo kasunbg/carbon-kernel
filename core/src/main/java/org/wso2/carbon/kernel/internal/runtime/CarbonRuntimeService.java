@@ -31,7 +31,7 @@ import java.util.List;
  * @since 5.0.0
  */
 
-public class CarbonRuntimeService implements RuntimeService {
+public class CarbonRuntimeService implements RuntimeService, CarbonRuntimeServiceMBean {
     private static Logger logger = LoggerFactory.getLogger(CarbonRuntimeService.class);
     RuntimeManager runtimeManager;
 
@@ -50,6 +50,7 @@ public class CarbonRuntimeService implements RuntimeService {
         List<Runtime> runtimeMap = runtimeManager.getRuntimeList();
         for (Runtime runtime : runtimeMap) {
             if (runtime.getState() == RuntimeState.INACTIVE) {
+                runtime.init();
                 runtime.start();
             } else if (runtime.getState() == RuntimeState.PENDING) {
                 throw new RuntimeServiceException("Runtime not initialized." + runtime.getClass().getName());

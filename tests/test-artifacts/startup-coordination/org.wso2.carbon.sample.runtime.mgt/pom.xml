@@ -61,6 +61,9 @@
             objectClass="org.wso2.carbon.sample.runtime.mgt.RuntimeManager";
             dependent-component-key="carbon-sample-deployment-engine",
         </provide.capability>
+        <startup.component>
+            carbon-sample-runtime-mgt;required-service="org.wso2.carbon.sample.runtime.mgt.Runtime"
+        </startup.component>
     </properties>
 
 </project>
